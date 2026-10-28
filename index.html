@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نقاشی کودک 🎨</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, sans-serif;
+    background: #FFF9E6;
+    display: flex; flex-direction: column;
+    align-items: center; padding: 10px;
+    max-width: 100%;
+  }
+  h1 { color: #FF6B6B; font-size: 1.5rem; margin: 8px 0; text-align: center; }
+  #toolbar {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 8px; padding: 8px; width: 100%; max-width: 600px;
+  }
+  button, label {
+    font-size: 1.4rem; padding: 10px 14px;
+    border: none; border-radius: 14px;
+    background: #FFD93D; cursor: pointer;
+    touch-action: manipulation;
+  }
+  button:active { background: #FFB4B4; }
+  .colors { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .color {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 4px solid #fff; cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  }
+  .color.sel { border-color: #333; transform: scale(1.15); }
+  canvas {
+    background: #fff; border: 4px dashed #FF6B6B;
+    border-radius: 16px; max-width: 100%;
+    touch-action: none; margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+  <h1>🎨 نقاشی کودک 🎨</h1>
+  <div id="toolbar">
+    <div class="colors">
+      <div class="color sel" style="background:#E63946" data-c="#E63946"></div>
+      <div class="color" style="background:#F4A261" data-c="#F4A261"></div>
+      <div class="color" style="background:#2A9D8F" data-c="#2A9D8F"></div>
+      <div class="color" style="background:#264653" data-c="#264653"></div>
+      <div class="color" style="background:#E9C46A" data-c="#E9C46A"></div>
+      <div class="color" style="background:#9B5DE5" data-c="#9B5DE5"></div>
+      <div class="color" style="background:#F15BB5" data-c="#F15BB5"></div>
+      <div class="color" style="background:#ffffff;border:2px solid #ccc" data-c="#ffffff"></div>
+    </div>
+    <button id="undo">↩️ برگشت</button>
+    <button id="clear">🗑️ پاک کردن همه</button>
+  </div>
+  <canvas id="board" width="600" height="800"></canvas>
+<script>
+const cv = document.getElementById('board');
+const ctx = cv.getContext('2d');
+ctx.fillStyle = '#fff';
+ctx.fillRect(0,0,cv.width,cv.height);
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+ctx.lineWidth = 6;
+let color = '#E63946';
+let drawing = false;
+let history = [];
+
+document.querySelectorAll('.color').forEach(el => {
+  el.onclick = () => {
+    color = el.dataset.c;
+    document.querySelectorAll('.color').forEach(e => e.classList.remove('sel'));
+    el.classList.add('sel');
+  };
+});
+
+function pos(e) {
+  const r = cv.getBoundingClientRect();
+  const t = e.touches ? e.touches[0] : e;
+  return [(t.clientX - r.left) * (cv.width / r.width),
+          (t.clientY - r.top) * (cv.height / r.height)];
+}
+function start(e) { e.preventDefault(); drawing = true; history.push(ctx.getImageData(0,0,cv.width,cv.height)); if (history.length>20) history.shift(); ctx.beginPath(); ctx.moveTo(...pos(e)); }
+function move(e) { if (!drawing) return; e.preventDefault(); ctx.strokeStyle = color; ctx.lineTo(...pos(e)); ctx.stroke(); }
+function end() { drawing = false; }
+
+cv.addEventListener('mousedown', start); cv.addEventListener('mousemove', move);
+cv.addEventListener('mouseup', end); cv.addEventListener('mouseleave', end);
+cv.addEventListener('touchstart', start); cv.addEventListener('touchmove', move);
+cv.addEventListener('touchend', end);
+
+document.getElementById('undo').onclick = () => {
+  if (history.length) ctx.putImageData(history.pop(), 0, 0);
+};
+document.getElementById('clear').onclick = () => {
+  history.push(ctx.getImageData(0,0,cv.width,cv.height));
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,cv.width,cv.height);
+};
+</script>
+</body>
+        </html>
